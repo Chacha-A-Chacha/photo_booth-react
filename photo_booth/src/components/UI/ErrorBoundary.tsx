@@ -1,7 +1,15 @@
 import React, { Component } from 'react';
-import type { ReactNode } from 'react'; // Ensure ReactNode is imported for type annotations
+import type { ReactNode } from 'react';
 import { AlertCircle, RefreshCw, Home, Bug } from 'lucide-react';
-import { AppError, ErrorBoundaryState } from '../../types/error';
+import type { 
+    AppError,
+    ErrorBoundaryState, 
+    ErrorCode
+} from '../../types/error';
+import {  
+  isRecoverableError,
+  getErrorSeverity
+} from '../../types/error';
 
 interface ErrorBoundaryProps {
   children: ReactNode;
@@ -39,7 +47,7 @@ class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
     this.props.onError?.(error, errorInfo);
     
     // Log to error reporting service in production
-    if (this.props.enableReporting && import.meta.env.MODE === 'production') {
+    if (this.props.enableReporting && process.env.NODE_ENV === 'production') {
       this.logErrorToService(error, errorInfo);
     }
   }
@@ -60,11 +68,24 @@ class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
     // analytics.track('error_boundary_triggered', errorData);
   };
 
-  private getErrorCode = (error: Error): string => {
-    if (error.message.includes('camera')) return 'CAMERA_ERROR';
-    if (error.message.includes('canvas')) return 'CANVAS_ERROR';
+  private getErrorCode = (error: Error): ErrorCode => {
+    if (error.message.includes('camera')) {
+      if (error.message.includes('not supported')) return 'CAMERA_NOT_SUPPORTED';
+      if (error.message.includes('permission')) return 'CAMERA_PERMISSION_DENIED';
+      if (error.message.includes('not found')) return 'CAMERA_NOT_FOUND';
+      return 'CAMERA_INITIALIZATION_FAILED';
+    }
+    if (error.message.includes('canvas')) {
+      if (error.message.includes('context')) return 'CANVAS_CONTEXT_ERROR';
+      return 'CANVAS_ERROR';
+    }
     if (error.message.includes('permission')) return 'PERMISSION_ERROR';
     if (error.message.includes('download')) return 'DOWNLOAD_FAILED';
+    if (error.message.includes('storage')) return 'STORAGE_ERROR';
+    if (error.message.includes('filter')) return 'FILTER_APPLICATION_ERROR';
+    if (error.message.includes('layout')) return 'LAYOUT_COMPOSITION_ERROR';
+    if (error.message.includes('processing')) return 'IMAGE_PROCESSING_ERROR';
+    if (error.message.includes('network')) return 'NETWORK_ERROR';
     return 'UNKNOWN_ERROR';
   };
 
@@ -140,7 +161,9 @@ class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
         );
       }
 
-      const isRecoverable = this.state.error ? this.isRecoverableError(this.state.error) : false;
+      const isRecoverable = this.state.error ? isRecoverableError(this.state.error) : false;
+      const recoveryStrategies = this.getRecoveryStrategies();
+      const errorSeverity = this.state.error ? getErrorSeverity(this.getErrorCode(this.state.error)) : 'medium';
       const isDevelopment = import.meta.env.MODE === 'development';
 
       return (
@@ -206,14 +229,29 @@ class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
               </button>
             </div>
 
-            {/* Recovery Hint */}
-            {isRecoverable && (
+            {/* Recovery Strategies */}
+            {isRecoverable && recoveryStrategies.length > 0 && (
               <div className="mt-6 p-4 bg-blue-50 rounded-lg border border-blue-200">
-                <p className="text-sm text-blue-700 text-center">
-                  💡 This appears to be a temporary issue. Try refreshing the page or checking your camera permissions.
-                </p>
+                <h3 className="text-sm font-medium text-blue-800 mb-2">💡 Try these solutions:</h3>
+                <ul className="text-sm text-blue-700 space-y-1">
+                  {recoveryStrategies.map((strategy, index) => (
+                    <li key={index} className="flex items-start">
+                      <span className="mr-2">•</span>
+                      <span>{strategy}</span>
+                    </li>
+                  ))}
+                </ul>
               </div>
             )}
+
+            {/* Error Severity Indicator */}
+            {errorSeverity === 'high' || errorSeverity === 'critical' ? (
+              <div className="mt-4 p-3 bg-red-50 rounded-lg border border-red-200">
+                <p className="text-sm text-red-700 text-center">
+                  ⚠️ This is a {errorSeverity} error that may require immediate attention.
+                </p>
+              </div>
+            ) : null}
 
             {/* Support Information */}
             <div className="mt-6 pt-6 border-t border-gray-200 text-center">
