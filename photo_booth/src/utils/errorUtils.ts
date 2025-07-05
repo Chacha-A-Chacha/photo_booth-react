@@ -1,5 +1,5 @@
 // src/utils/errorUtils.ts
-import type { ErrorCode, AppError, ErrorContext, ErrorMetadata } from '../types/error';
+import type { AppError, ErrorContext, ErrorMetadata } from '../types/error';
 import { createAppError, ERROR_MESSAGES } from '../types/error';
 
 export const handleCameraError = (error: Error): AppError => {
