@@ -2,6 +2,7 @@
 import type { LayoutType, TextConfig } from '../types/layout';
 import type { FilterType } from '../types/filter';
 import { loadImage, createCanvas, validateCanvas } from './canvasUtils';
+import { LAYOUTS } from '../constants/layouts';
 
 export const composePhotoStrip = async (
   canvas: HTMLCanvasElement, 
@@ -133,4 +134,12 @@ export const calculateOptimalLayout = (
     backgroundColor: '#ffffff',
     positions
   };
+};
+
+export const validateLayoutId = (layoutId: string): boolean => {
+  return LAYOUTS.some(layout => layout.id === layoutId);
+};
+
+export const getLayoutById = (layoutId: string): LayoutType | undefined => {
+  return LAYOUTS.find(layout => layout.id === layoutId);
 };

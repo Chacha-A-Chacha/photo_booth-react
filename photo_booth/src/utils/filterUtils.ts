@@ -1,5 +1,6 @@
 // src/utils/filterUtils.ts
 import type { FilterType, CustomFilterOptions } from '../types/filter';
+import { FILTERS } from '../constants/filters';
 
 export const createCustomFilter = (options: CustomFilterOptions): string => {
   const filters: string[] = [];
@@ -89,4 +90,12 @@ export const getFilterPreview = (filter: FilterType): string => {
   return `
     <div class="w-12 h-12 bg-gradient-to-br from-purple-400 to-pink-400 rounded ${filter.className}"></div>
   `;
+};
+
+export const validateFilterId = (filterId: string): boolean => {
+  return FILTERS.some(filter => filter.id === filterId);
+};
+
+export const getFilterById = (filterId: string): FilterType | undefined => {
+  return FILTERS.find(filter => filter.id === filterId);
 };

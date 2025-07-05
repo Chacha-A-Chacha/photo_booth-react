@@ -1,16 +1,17 @@
 // src/utils/downloadUtils.ts
 import { validateCanvas } from './canvasUtils';
+import { DOWNLOAD_FORMATS, QUALITY_PRESETS } from '../constants/config';
 
 export const downloadCanvasAsImage = (
   canvas: HTMLCanvasElement, 
   filename: string = 'photo-booth.png',
-  format: 'png' | 'jpeg' | 'webp' = 'png',
-  quality: number = 0.92
+  format: keyof typeof DOWNLOAD_FORMATS = 'PNG',
+  quality: number = QUALITY_PRESETS.HIGH
 ): void => {
   try {
     validateCanvas(canvas);
     
-    const mimeType = `image/${format}`;
+    const mimeType = DOWNLOAD_FORMATS[format];
     const dataURL = canvas.toDataURL(mimeType, quality);
     
     const link = document.createElement('a');
@@ -29,23 +30,24 @@ export const downloadCanvasAsImage = (
 
 export const generateFileName = (
   prefix: string = 'photo-booth',
-  format: 'png' | 'jpeg' | 'webp' = 'png',
+  format: keyof typeof DOWNLOAD_FORMATS = 'PNG',
   timestamp: boolean = true
 ): string => {
   const now = timestamp ? new Date().toISOString().replace(/[:.]/g, '-') : '';
   const timestampSuffix = timestamp ? `-${now}` : '';
-  return `${prefix}${timestampSuffix}.${format}`;
+  const extension = format.toLowerCase();
+  return `${prefix}${timestampSuffix}.${extension}`;
 };
 
 export const canvasToBlob = (
   canvas: HTMLCanvasElement,
-  format: 'png' | 'jpeg' | 'webp' = 'png',
-  quality: number = 0.92
+  format: keyof typeof DOWNLOAD_FORMATS = 'PNG',
+  quality: number = QUALITY_PRESETS.HIGH
 ): Promise<Blob> => {
   return new Promise((resolve, reject) => {
     validateCanvas(canvas);
     
-    const mimeType = `image/${format}`;
+    const mimeType = DOWNLOAD_FORMATS[format];
     canvas.toBlob(
       (blob) => {
         if (blob) {
@@ -63,7 +65,7 @@ export const canvasToBlob = (
 export const shareCanvas = async (
   canvas: HTMLCanvasElement,
   filename: string = 'photo-booth.png',
-  format: 'png' | 'jpeg' | 'webp' = 'png'
+  format: keyof typeof DOWNLOAD_FORMATS = 'PNG'
 ): Promise<void> => {
   if (!navigator.share) {
     throw new Error('Web Share API not supported');
@@ -86,7 +88,7 @@ export const shareCanvas = async (
 
 export const copyCanvasToClipboard = async (
   canvas: HTMLCanvasElement,
-  format: 'png' | 'jpeg' | 'webp' = 'png'
+  format: keyof typeof DOWNLOAD_FORMATS = 'PNG'
 ): Promise<void> => {
   if (!navigator.clipboard) {
     throw new Error('Clipboard API not supported');
@@ -103,14 +105,14 @@ export const copyCanvasToClipboard = async (
   }
 };
 
-export const getOptimalFormat = (hasTransparency: boolean = false): 'png' | 'jpeg' | 'webp' => {
-  if (hasTransparency) return 'png';
+export const getOptimalFormat = (hasTransparency: boolean = false): keyof typeof DOWNLOAD_FORMATS => {
+  if (hasTransparency) return 'PNG';
   
   // Check WebP support
   const canvas = document.createElement('canvas');
   canvas.width = 1;
   canvas.height = 1;
-  const webpSupported = canvas.toDataURL('image/webp').indexOf('data:image/webp') === 0;
+  const webpSupported = canvas.toDataURL(DOWNLOAD_FORMATS.WEBP).indexOf('data:image/webp') === 0;
   
-  return webpSupported ? 'webp' : 'jpeg';
+  return webpSupported ? 'WEBP' : 'JPEG';
 };

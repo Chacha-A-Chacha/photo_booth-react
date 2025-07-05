@@ -1,6 +1,7 @@
 // src/utils/validationUtils.ts
 import type { FilterType } from '../types/filter';
 import type { LayoutType } from '../types/layout';
+import { APP_CONFIG, SUPPORTED_FORMATS } from '../constants/config';
 
 export const validateImageDataURL = (dataURL: string): boolean => {
   if (!dataURL || typeof dataURL !== 'string') {
@@ -21,7 +22,7 @@ export const validateCanvasDimensions = (width: number, height: number): boolean
     return false;
   }
   
-  const maxSize = 32767; // Browser canvas limit
+  const maxSize = APP_CONFIG.canvas.maxWidth;
   const minSize = 1;
   
   return width >= minSize && height >= minSize && width <= maxSize && height <= maxSize;
@@ -77,8 +78,7 @@ export const validateImageFile = (file: File): boolean => {
     return false;
   }
   
-  const allowedTypes = ['image/jpeg', 'image/png', 'image/webp'];
-  return allowedTypes.includes(file.type);
+  return SUPPORTED_FORMATS.includes(file.type as any);
 };
 
 export const validateMediaDevices = (): boolean => {

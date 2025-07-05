@@ -1,6 +1,7 @@
 // src/utils/canvasUtils.ts
 import type { FilterType } from '../types/filter';
 import type { LayoutType } from '../types/layout';
+import { QUALITY_PRESETS } from '../constants/config';
 
 export const createCanvas = (width: number, height: number): HTMLCanvasElement => {
   const canvas = document.createElement('canvas');
@@ -46,7 +47,7 @@ export const downloadCanvas = (canvas: HTMLCanvasElement, filename: string = 'ph
   }
 };
 
-export const optimizeImage = (canvas: HTMLCanvasElement, quality: number = 0.9, format: string = 'image/jpeg'): string => {
+export const optimizeImage = (canvas: HTMLCanvasElement, quality: number = QUALITY_PRESETS.HIGH, format: string = 'image/jpeg'): string => {
   validateCanvas(canvas);
   return canvas.toDataURL(format, quality);
 };
