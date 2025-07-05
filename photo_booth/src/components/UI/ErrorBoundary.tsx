@@ -1,4 +1,5 @@
-import React, { Component, ReactNode } from 'react';
+import React, { Component } from 'react';
+import type { ReactNode } from 'react'; // Ensure ReactNode is imported for type annotations
 import { AlertCircle, RefreshCw, Home, Bug } from 'lucide-react';
 import { AppError, ErrorBoundaryState } from '../../types/error';
 
@@ -140,7 +141,7 @@ class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
       }
 
       const isRecoverable = this.state.error ? this.isRecoverableError(this.state.error) : false;
-      const isDevelopment = process.env.NODE_ENV === 'development';
+      const isDevelopment = import.meta.env.MODE === 'development';
 
       return (
         <div className="min-h-screen bg-gradient-to-br from-red-50 to-orange-50 flex items-center justify-center p-4">
