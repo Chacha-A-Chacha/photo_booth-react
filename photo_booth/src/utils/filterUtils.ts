@@ -90,7 +90,3 @@ export const getFilterPreview = (filter: FilterType): string => {
     <div class="w-12 h-12 bg-gradient-to-br from-purple-400 to-pink-400 rounded ${filter.className}"></div>
   `;
 };
-
-export const validateFilter = (filter: FilterType): boolean => {
-  return !!(filter.id && filter.name && filter.cssFilter);
-};
