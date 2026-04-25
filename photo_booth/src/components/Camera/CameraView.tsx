@@ -10,6 +10,7 @@ import { usePermissions } from '../../hooks/usePermissions';
 import { useErrorHandler } from '../../hooks/useErrorHandler';
 import type { FilterType } from '../../types/filter';
 import { APP_CONFIG } from '../../constants/config';
+import { applyFilterToDataURL } from '../../utils/canvasUtils';
 
 interface CameraViewProps {
   onCapture: (photoData: string) => void;
@@ -39,7 +40,7 @@ const CameraView = forwardRef<any, CameraViewProps>(({
     setIsCountdown(true);
   };
 
-  const handleCountdownComplete = () => {
+  const handleCountdownComplete = async () => {
     setIsCountdown(false);
     setShowFlash(true);
     setTimeout(() => setShowFlash(false), 600);
@@ -48,12 +49,12 @@ const CameraView = forwardRef<any, CameraViewProps>(({
         throw new Error('Camera not available');
       }
 
-      const imageSrc = ref.current.getScreenshot();
-      if (imageSrc) {
-        onCapture(imageSrc);
-      } else {
+      const rawSrc = ref.current.getScreenshot();
+      if (!rawSrc) {
         throw new Error('Failed to capture image');
       }
+      const filteredSrc = await applyFilterToDataURL(rawSrc, selectedFilter);
+      onCapture(filteredSrc);
     } catch (err) {
       handleError(err as Error);
     }

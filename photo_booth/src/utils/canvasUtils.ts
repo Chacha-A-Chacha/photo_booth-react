@@ -73,15 +73,35 @@ export const resizeCanvas = (canvas: HTMLCanvasElement, maxWidth: number, maxHei
 
 export const applyFilterToCanvas = (canvas: HTMLCanvasElement, filter: FilterType): HTMLCanvasElement => {
   validateCanvas(canvas);
-  
+
   const filteredCanvas = createCanvas(canvas.width, canvas.height);
   const ctx = filteredCanvas.getContext('2d')!;
-  
+
   // Apply CSS filter
   ctx.filter = filter.cssFilter || 'none';
   ctx.drawImage(canvas, 0, 0);
-  
+
   return filteredCanvas;
+};
+
+// Bakes a CSS filter into the pixel data of a captured dataURL so the
+// chosen filter travels with the photo, even if the user changes filter
+// before the next shot.
+export const applyFilterToDataURL = async (
+  dataURL: string,
+  filter: FilterType | undefined
+): Promise<string> => {
+  if (!filter || filter.cssFilter === 'none' || !filter.cssFilter) {
+    return dataURL;
+  }
+  const img = await loadImage(dataURL);
+  const w = img.naturalWidth || img.width;
+  const h = img.naturalHeight || img.height;
+  const canvas = createCanvas(w, h);
+  const ctx = canvas.getContext('2d')!;
+  ctx.filter = filter.cssFilter;
+  ctx.drawImage(img, 0, 0);
+  return canvas.toDataURL('image/jpeg', 0.92);
 };
 
 export const combineCanvases = (canvases: HTMLCanvasElement[], layout: LayoutType): HTMLCanvasElement => {

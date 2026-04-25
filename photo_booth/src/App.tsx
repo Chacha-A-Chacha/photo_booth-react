@@ -140,7 +140,6 @@ function App() {
                 <PhotoPreview
                   photos={photos}
                   layout={selectedLayout}
-                  filter={selectedFilter}
                   canvasRef={canvasRef}
                 />
               )}

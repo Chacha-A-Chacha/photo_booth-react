@@ -1,30 +1,30 @@
 // src/components/PhotoCapture/PhotoPreview.tsx
 import React, { useEffect } from 'react';
 import { Image as ImageIcon } from 'lucide-react';
-import type { LayoutType, FilterType, Photo } from '../../types';
+import type { LayoutType, Photo } from '../../types';
 import { useCanvas } from '../../hooks/useCanvas';
 import PhotoGrid from './PhotoGrid';
 
 interface PhotoPreviewProps {
   photos: Photo[];
   layout: LayoutType;
-  filter?: FilterType;
   canvasRef: React.RefObject<HTMLCanvasElement | null>;
 }
 
 const PhotoPreview: React.FC<PhotoPreviewProps> = ({
   photos,
   layout,
-  filter,
   canvasRef
 }) => {
   const { composePhotos, isProcessing, error } = useCanvas();
 
   useEffect(() => {
     if (photos.length > 0 && canvasRef.current) {
-      composePhotos(photos.map(p => p.data), layout, filter);
+      // Filters are baked into each photo at capture time, so we don't
+      // re-apply them at composition.
+      composePhotos(photos.map(p => p.data), layout);
     }
-  }, [photos, layout, filter, composePhotos]);
+  }, [photos, layout, composePhotos, canvasRef]);
 
   if (error) {
     return (
