@@ -6,9 +6,10 @@ import type {
     ErrorBoundaryState, 
     ErrorCode
 } from '../../types/error';
-import {  
+import {
   isRecoverableError,
-  getErrorSeverity
+  getErrorSeverity,
+  ERROR_RECOVERY_STRATEGIES
 } from '../../types/error';
 
 interface ErrorBoundaryProps {
@@ -56,7 +57,7 @@ class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
     const errorData: AppError = {
       code: this.getErrorCode(error),
       message: error.message,
-      details: errorInfo.componentStack,
+      details: errorInfo.componentStack ?? undefined,
       timestamp: Date.now(),
       recoverable: this.isRecoverableError(error)
     };
@@ -109,10 +110,6 @@ class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
     }
   };
 
-  private handleRefresh = () => {
-    window.location.reload();
-  };
-
   private handleGoHome = () => {
     window.location.href = '/';
   };
@@ -146,6 +143,11 @@ class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
   private getRetryButtonText = (): string => {
     if (this.retryCount >= this.maxRetries) return 'Refresh Page';
     return `Try Again (${this.maxRetries - this.retryCount} attempts left)`;
+  };
+
+  private getRecoveryStrategies = (): string[] => {
+    if (!this.state.error) return [];
+    return ERROR_RECOVERY_STRATEGIES[this.getErrorCode(this.state.error)] ?? [];
   };
 
   render() {
@@ -234,7 +236,7 @@ class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
               <div className="mt-6 p-4 bg-blue-50 rounded-lg border border-blue-200">
                 <h3 className="text-sm font-medium text-blue-800 mb-2">💡 Try these solutions:</h3>
                 <ul className="text-sm text-blue-700 space-y-1">
-                  {recoveryStrategies.map((strategy, index) => (
+                  {recoveryStrategies.map((strategy: string, index: number) => (
                     <li key={index} className="flex items-start">
                       <span className="mr-2">•</span>
                       <span>{strategy}</span>
