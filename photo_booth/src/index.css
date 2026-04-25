@@ -1,1 +1,72 @@
 @import "tailwindcss";
+
+@theme {
+  --color-cream: #FFF7ED;
+  --color-paper: #FAF6F0;
+  --color-ink: #1A1A2E;
+  --color-charcoal: #2D2D3A;
+  --color-coral: #FF5A5F;
+  --color-coral-dark: #E63946;
+  --color-mustard: #F5C518;
+  --color-lilac: #C4B5FD;
+  --color-mint: #A7F3D0;
+
+  --font-display: "Bagel Fat One", system-ui, sans-serif;
+  --font-sans: "DM Sans", system-ui, sans-serif;
+
+  --shadow-pop: 6px 6px 0 0 var(--color-ink);
+  --shadow-pop-sm: 3px 3px 0 0 var(--color-ink);
+  --shadow-pop-coral: 6px 6px 0 0 var(--color-coral);
+}
+
+html,
+body {
+  background-color: var(--color-cream);
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+  margin: 0;
+  min-height: 100vh;
+}
+
+body {
+  background-image:
+    radial-gradient(circle at 1px 1px, rgba(26, 26, 46, 0.06) 1px, transparent 0);
+  background-size: 24px 24px;
+}
+
+@utility shadow-pop {
+  box-shadow: 6px 6px 0 0 var(--color-ink);
+}
+@utility shadow-pop-sm {
+  box-shadow: 3px 3px 0 0 var(--color-ink);
+}
+@utility shadow-pop-coral {
+  box-shadow: 6px 6px 0 0 var(--color-coral);
+}
+@utility border-ink {
+  border-color: var(--color-ink);
+}
+@utility tilt-l {
+  transform: rotate(-1.5deg);
+}
+@utility tilt-r {
+  transform: rotate(1.5deg);
+}
+
+@keyframes flash {
+  0% { opacity: 0; }
+  20% { opacity: 1; }
+  100% { opacity: 0; }
+}
+.animate-flash {
+  animation: flash 600ms ease-out forwards;
+}
+
+@keyframes pop-in {
+  0% { transform: scale(0.6); opacity: 0; }
+  60% { transform: scale(1.1); opacity: 1; }
+  100% { transform: scale(1); opacity: 1; }
+}
+.animate-pop-in {
+  animation: pop-in 280ms cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
