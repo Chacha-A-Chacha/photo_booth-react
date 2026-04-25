@@ -13,15 +13,6 @@ export interface VideoConstraints {
   deviceId?: { exact: string };
 }
 
-export interface CameraState {
-  isActive: boolean;
-  hasPermission: boolean | null;
-  error: string | null;
-  devices: CameraDevice[];
-  currentDeviceId: string | null;
-  facingMode: 'user' | 'environment';
-}
-
 export type CameraPermissionStatus =
   | 'checking'
   | 'prompt'
