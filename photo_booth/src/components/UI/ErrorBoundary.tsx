@@ -47,7 +47,7 @@ class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
     this.props.onError?.(error, errorInfo);
     
     // Log to error reporting service in production
-    if (this.props.enableReporting && process.env.NODE_ENV === 'production') {
+    if (this.props.enableReporting && import.meta.env.MODE === 'production') {
       this.logErrorToService(error, errorInfo);
     }
   }

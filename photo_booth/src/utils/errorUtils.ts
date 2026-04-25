@@ -74,7 +74,7 @@ export const logError = (error: AppError, additionalContext?: Record<string, any
   console.error('Application Error:', errorData);
   
   // Send to error reporting service in production
-  if (process.env.NODE_ENV === 'production') {
+  if (import.meta.env.MODE === 'production') {
     reportError(errorData);
   }
 };
