@@ -8,7 +8,7 @@ interface FrameOverlayProps {
   height: number;
 }
 
-const FrameOverlay: React.FC<FrameOverlayProps> = ({ frame, width, height }) => {
+const FrameOverlay: React.FC<FrameOverlayProps> = ({ frame }) => {
   return (
     <div 
       className="absolute inset-0 pointer-events-none"

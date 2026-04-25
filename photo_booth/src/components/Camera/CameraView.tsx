@@ -1,7 +1,7 @@
 // src/components/Camera/CameraView.tsx
-import React, { useState, forwardRef } from 'react';
+import { useState, forwardRef } from 'react';
 import Webcam from 'react-webcam';
-import { Camera, RotateCcw, AlertCircle } from 'lucide-react';
+import { RotateCcw, AlertCircle } from 'lucide-react';
 import CountdownTimer from './CountdownTimer';
 import CameraControls from './CameraControls';
 import CameraPermissions from './CameraPermissions';
@@ -108,7 +108,7 @@ const CameraView = forwardRef<any, CameraViewProps>(({
           screenshotFormat="image/jpeg"
           videoConstraints={videoConstraints}
           className={`w-full h-auto ${selectedFilter.className}`}
-          onUserMediaError={(err) => {
+          onUserMediaError={() => {
             handleError(new Error('Camera initialization failed'));
           }}
         />

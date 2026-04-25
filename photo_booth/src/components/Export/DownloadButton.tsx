@@ -6,14 +6,12 @@ interface DownloadButtonProps {
   onClick: () => void;
   disabled?: boolean;
   isLoading?: boolean;
-  filename?: string;
 }
 
-const DownloadButton: React.FC<DownloadButtonProps> = ({ 
-  onClick, 
-  disabled = false, 
-  isLoading = false,
-  filename = 'photo-booth.png'
+const DownloadButton: React.FC<DownloadButtonProps> = ({
+  onClick,
+  disabled = false,
+  isLoading = false
 }) => {
   return (
     <button

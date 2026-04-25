@@ -13,14 +13,14 @@ import { usePhotoCapture } from './hooks/usePhotoCapture';
 import { useLocalStorage } from './hooks/useLocalStorage';
 import { useCanvas } from './hooks/useCanvas';
 import { useErrorHandler } from './hooks/useErrorHandler';
-import { LAYOUTS, FILTERS, DEFAULT_LAYOUT, DEFAULT_FILTER, STORAGE_KEYS } from './constants';
+import { DEFAULT_LAYOUT, DEFAULT_FILTER, STORAGE_KEYS } from './constants';
 
 function App() {
   const [currentStep, setCurrentStep] = useState<'camera' | 'preview'>('camera');
   const [selectedLayout, setSelectedLayout] = useLocalStorage(STORAGE_KEYS.SELECTED_LAYOUT, DEFAULT_LAYOUT);
   const [selectedFilter, setSelectedFilter] = useLocalStorage(STORAGE_KEYS.SELECTED_FILTER, DEFAULT_FILTER);
   
-  const { photos, addPhoto, clearPhotos, canAddMore, isComplete } = usePhotoCapture(selectedLayout.photoCount);
+  const { photos, addPhoto, clearPhotos, canAddMore } = usePhotoCapture(selectedLayout.photoCount);
   const { canvasRef, initializeCanvas, downloadImage, isProcessing } = useCanvas();
   const { error, isLoading, executeWithErrorHandling } = useErrorHandler();
   

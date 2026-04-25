@@ -1,5 +1,5 @@
 // src/utils/imageUtils.ts
-import { createCanvas, loadImage } from './canvasUtils';
+import { createCanvas } from './canvasUtils';
 
 export const resizeImage = (
   image: HTMLImageElement, 
