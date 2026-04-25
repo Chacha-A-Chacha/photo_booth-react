@@ -1,17 +1,18 @@
 // src/components/PhotoCapture/PhotoGrid.tsx
 import React from 'react';
 import { Trash2 } from 'lucide-react';
+import type { Photo } from '../../types';
 
 interface PhotoGridProps {
-  photos: string[];
+  photos: Photo[];
   onDeletePhoto?: (index: number) => void;
   showDelete?: boolean;
   className?: string;
 }
 
-const PhotoGrid: React.FC<PhotoGridProps> = ({ 
-  photos, 
-  onDeletePhoto, 
+const PhotoGrid: React.FC<PhotoGridProps> = ({
+  photos,
+  onDeletePhoto,
   showDelete = false,
   className = ""
 }) => {
@@ -30,9 +31,9 @@ const PhotoGrid: React.FC<PhotoGridProps> = ({
       </h3>
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
         {photos.map((photo, index) => (
-          <div key={index} className="relative group">
-            <img 
-              src={photo} 
+          <div key={photo.id} className="relative group">
+            <img
+              src={photo.data}
               alt={`Photo ${index + 1}`}
               className="w-full h-20 object-cover rounded-lg border-2 border-gray-200 group-hover:border-purple-400 transition-colors"
             />
