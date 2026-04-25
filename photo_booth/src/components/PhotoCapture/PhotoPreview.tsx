@@ -8,7 +8,7 @@ interface PhotoPreviewProps {
   photos: string[];
   layout: LayoutType;
   filter?: FilterType;
-  canvasRef: React.RefObject<HTMLCanvasElement>;
+  canvasRef: React.RefObject<HTMLCanvasElement | null>;
 }
 
 const PhotoPreview: React.FC<PhotoPreviewProps> = ({ 

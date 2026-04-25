@@ -5,7 +5,7 @@ import { useCanvas } from '../../hooks/useCanvas';
 import { shareCanvas, copyCanvasToClipboard } from '../../utils/downloadUtils';
 
 interface SharePanelProps {
-  canvasRef: React.RefObject<HTMLCanvasElement>;
+  canvasRef: React.RefObject<HTMLCanvasElement | null>;
   filename?: string;
 }
 
