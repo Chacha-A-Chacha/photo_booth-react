@@ -1,11 +1,12 @@
 // src/components/Camera/CameraView.tsx
 import { useState, forwardRef } from 'react';
 import Webcam from 'react-webcam';
-import { RotateCcw, AlertCircle } from 'lucide-react';
+import { RotateCcw } from 'lucide-react';
 import CountdownTimer from './CountdownTimer';
 import CameraControls from './CameraControls';
 import CameraPermissions from './CameraPermissions';
 import { useCamera } from '../../hooks/useCamera';
+import { usePermissions } from '../../hooks/usePermissions';
 import { useErrorHandler } from '../../hooks/useErrorHandler';
 import type { FilterType } from '../../types/filter';
 import { APP_CONFIG } from '../../constants/config';
@@ -25,14 +26,9 @@ const CameraView = forwardRef<any, CameraViewProps>(({
 }, ref) => {
   const [isCountdown, setIsCountdown] = useState(false);
   const [showFlash, setShowFlash] = useState(false);
-  const {
-    hasPermission,
-    error: cameraError,
-    startCamera,
-    toggleCamera,
-    hasMultipleCameras,
-    getVideoConstraints
-  } = useCamera();
+
+  const { cameraPermission, requestCameraPermission, isGranted } = usePermissions();
+  const { toggleCamera, hasMultipleCameras, getVideoConstraints } = useCamera();
   const { handleError } = useErrorHandler();
 
   const handleCaptureClick = () => {
@@ -63,42 +59,12 @@ const CameraView = forwardRef<any, CameraViewProps>(({
     }
   };
 
-  const handlePermissionGranted = () => {
-    startCamera();
-  };
-
-  const handlePermissionDenied = (err: Error) => {
-    handleError(err);
-  };
-
-  if (hasPermission === null) {
+  if (!isGranted) {
     return (
       <CameraPermissions
-        onGranted={handlePermissionGranted}
-        onDenied={handlePermissionDenied}
+        permission={cameraPermission}
+        onRequest={requestCameraPermission}
       />
-    );
-  }
-
-  if (hasPermission === false || cameraError) {
-    return (
-      <div className="bg-paper border-4 border-ink rounded-3xl shadow-pop p-8 text-center">
-        <div className="inline-flex w-16 h-16 bg-coral border-4 border-ink rounded-2xl items-center justify-center mb-4 rotate-[-4deg]">
-          <AlertCircle className="w-9 h-9 text-cream" strokeWidth={2.5} />
-        </div>
-        <h2 className="font-display text-2xl text-ink mb-2">
-          Camera Access Required
-        </h2>
-        <p className="text-charcoal/80 mb-6">
-          {cameraError || 'Please allow camera access to use the photo booth.'}
-        </p>
-        <button
-          onClick={() => startCamera()}
-          className="bg-ink text-cream font-semibold px-6 py-3 rounded-xl border-2 border-ink hover:bg-coral transition-colors"
-        >
-          Try Again
-        </button>
-      </div>
     );
   }
 

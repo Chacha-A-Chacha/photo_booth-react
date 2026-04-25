@@ -1,11 +1,11 @@
 // src/components/Camera/CameraPermissions.tsx
-import React, { useEffect } from 'react';
+import React from 'react';
 import { Aperture, Camera, Lock, Loader2, ShieldCheck, Settings } from 'lucide-react';
-import { usePermissions } from '../../hooks/usePermissions';
+import type { CameraPermissionState } from '../../types/camera';
 
 interface CameraPermissionsProps {
-  onGranted: () => void;
-  onDenied?: (error: Error) => void;
+  permission: CameraPermissionState;
+  onRequest: () => void;
 }
 
 const Card: React.FC<{ children: React.ReactNode }> = ({ children }) => (
@@ -44,19 +44,9 @@ const BrowserHints: React.FC = () => {
   );
 };
 
-const CameraPermissions: React.FC<CameraPermissionsProps> = ({ onGranted, onDenied }) => {
-  const { cameraPermission, requestCameraPermission } = usePermissions();
-
-  useEffect(() => {
-    if (cameraPermission.state === 'granted') {
-      onGranted();
-    } else if (cameraPermission.state === 'denied' && cameraPermission.error && onDenied) {
-      onDenied(new Error(cameraPermission.error));
-    }
-  }, [cameraPermission.state, cameraPermission.error, onGranted, onDenied]);
-
+const CameraPermissions: React.FC<CameraPermissionsProps> = ({ permission, onRequest }) => {
   // Brief boot probe — usually <100ms.
-  if (cameraPermission.state === 'checking') {
+  if (permission.state === 'checking') {
     return (
       <Card>
         <div className="text-center">
@@ -70,7 +60,7 @@ const CameraPermissions: React.FC<CameraPermissionsProps> = ({ onGranted, onDeni
     );
   }
 
-  if (cameraPermission.state === 'unsupported') {
+  if (permission.state === 'unsupported') {
     return (
       <Card>
         <div className="text-center">
@@ -79,7 +69,7 @@ const CameraPermissions: React.FC<CameraPermissionsProps> = ({ onGranted, onDeni
           </div>
           <h2 className="font-display text-2xl text-ink mb-2">Camera Not Supported</h2>
           <p className="text-charcoal/80">
-            {cameraPermission.error ||
+            {permission.error ||
               'This browser doesn\'t support camera access. Try Chrome, Firefox, or Safari.'}
           </p>
         </div>
@@ -87,7 +77,7 @@ const CameraPermissions: React.FC<CameraPermissionsProps> = ({ onGranted, onDeni
     );
   }
 
-  if (cameraPermission.state === 'requesting') {
+  if (permission.state === 'requesting') {
     return (
       <Card>
         <div className="text-center">
@@ -103,7 +93,7 @@ const CameraPermissions: React.FC<CameraPermissionsProps> = ({ onGranted, onDeni
     );
   }
 
-  if (cameraPermission.state === 'denied') {
+  if (permission.state === 'denied') {
     return (
       <Card>
         <div className="text-center">
@@ -112,12 +102,12 @@ const CameraPermissions: React.FC<CameraPermissionsProps> = ({ onGranted, onDeni
           </div>
           <h2 className="font-display text-2xl text-ink mb-2">Camera Blocked</h2>
           <p className="text-charcoal/80 mb-4">
-            {cameraPermission.error ||
+            {permission.error ||
               'We can\'t reach your camera. Once a browser blocks it, you\'ll need to re-allow it manually.'}
           </p>
 
           <button
-            onClick={requestCameraPermission}
+            onClick={onRequest}
             className="w-full sm:w-auto inline-flex items-center justify-center gap-2 bg-ink text-cream font-semibold px-6 py-3 rounded-xl border-2 border-ink shadow-pop-sm hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-none transition-all"
           >
             <Camera className="w-4 h-4" strokeWidth={2.5} />
@@ -146,7 +136,7 @@ const CameraPermissions: React.FC<CameraPermissionsProps> = ({ onGranted, onDeni
         </p>
 
         <button
-          onClick={requestCameraPermission}
+          onClick={onRequest}
           className="inline-flex items-center justify-center gap-2 bg-coral text-cream font-semibold px-8 py-3.5 rounded-xl border-2 border-ink shadow-pop hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-pop-sm active:translate-x-[4px] active:translate-y-[4px] active:shadow-none transition-all"
         >
           <Camera className="w-5 h-5" strokeWidth={2.5} />
