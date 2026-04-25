@@ -1,119 +1,64 @@
 // src/hooks/useCanvas.ts
-import { useRef, useCallback, useState } from 'react';
+import { useCallback, useState } from 'react';
 import type { LayoutType } from '../types/layout';
 import type { FilterType } from '../types/filter';
-import { validateCanvas } from '../utils/canvasUtils';
 import { composePhotoStrip } from '../utils/layoutUtils';
 import { downloadCanvasAsImage } from '../utils/downloadUtils';
 import { handleCanvasError } from '../utils/errorUtils';
 
+// The caller owns the <canvas> element and passes it in. This avoids the
+// previous bug where each useCanvas() instance had its own (unattached)
+// canvasRef and silently no-op'd composition.
 export const useCanvas = () => {
-  const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const composePhotos = useCallback(async (
+    canvas: HTMLCanvasElement | null,
     photos: string[],
     layout: LayoutType,
     filter?: FilterType
   ) => {
-    if (!canvasRef.current) {
-      throw new Error('Canvas not initialized');
+    if (!canvas) {
+      const message = 'Canvas not ready';
+      setError(message);
+      return null;
     }
 
     setIsProcessing(true);
     setError(null);
-
     try {
-      await composePhotoStrip(canvasRef.current, photos, layout, filter);
-      return canvasRef.current;
-    } catch (error) {
-      const appError = handleCanvasError(error as Error, 'compose');
+      await composePhotoStrip(canvas, photos, layout, filter);
+      return canvas;
+    } catch (err) {
+      const appError = handleCanvasError(err as Error, 'compose');
       setError(appError.message);
-      throw appError;
+      return null;
     } finally {
       setIsProcessing(false);
     }
   }, []);
 
-  const downloadImage = useCallback((filename?: string) => {
-    if (!canvasRef.current) {
-      throw new Error('Canvas not initialized');
+  const downloadImage = useCallback((
+    canvas: HTMLCanvasElement | null,
+    filename?: string
+  ) => {
+    if (!canvas) {
+      throw new Error('Canvas not ready');
     }
-
     try {
-      downloadCanvasAsImage(canvasRef.current, filename);
-    } catch (error) {
-      const appError = handleCanvasError(error as Error, 'download');
+      downloadCanvasAsImage(canvas, filename);
+    } catch (err) {
+      const appError = handleCanvasError(err as Error, 'download');
       setError(appError.message);
       throw appError;
     }
-  }, []);
-
-  const getDataURL = useCallback((format: 'PNG' | 'JPEG' | 'WEBP' = 'PNG', quality = 0.9) => {
-    if (!canvasRef.current) {
-      throw new Error('Canvas not initialized');
-    }
-
-    try {
-      validateCanvas(canvasRef.current);
-      const mimeType = `image/${format.toLowerCase()}`;
-      return canvasRef.current.toDataURL(mimeType, quality);
-    } catch (error) {
-      const appError = handleCanvasError(error as Error, 'getDataURL');
-      setError(appError.message);
-      throw appError;
-    }
-  }, []);
-
-  const clearCanvas = useCallback(() => {
-    if (!canvasRef.current) return;
-
-    try {
-      const ctx = canvasRef.current.getContext('2d');
-      if (ctx) {
-        ctx.clearRect(0, 0, canvasRef.current.width, canvasRef.current.height);
-      }
-      setError(null);
-    } catch (error) {
-      const appError = handleCanvasError(error as Error, 'clear');
-      setError(appError.message);
-      throw appError;
-    }
-  }, []);
-
-  const getCanvasBlob = useCallback((format: 'PNG' | 'JPEG' | 'WEBP' = 'PNG', quality = 0.9): Promise<Blob> => {
-    if (!canvasRef.current) {
-      throw new Error('Canvas not initialized');
-    }
-
-    return new Promise((resolve, reject) => {
-      try {
-        validateCanvas(canvasRef.current!);
-        const mimeType = `image/${format.toLowerCase()}`;
-        canvasRef.current!.toBlob((blob) => {
-          if (blob) {
-            resolve(blob);
-          } else {
-            reject(new Error('Failed to create blob'));
-          }
-        }, mimeType, quality);
-      } catch (error) {
-        const appError = handleCanvasError(error as Error, 'getBlob');
-        reject(appError);
-      }
-    });
   }, []);
 
   return {
-    canvasRef,
     isProcessing,
     error,
     composePhotos,
-    downloadImage,
-    getDataURL,
-    clearCanvas,
-    getCanvasBlob,
-    isReady: !!canvasRef.current
+    downloadImage
   };
 };

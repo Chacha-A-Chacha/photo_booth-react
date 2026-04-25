@@ -23,10 +23,11 @@ function App() {
   const [toast, setToast] = useState<{ message: string; type?: 'success' | 'error' | 'info' } | null>(null);
 
   const { photos, addPhoto, removePhoto, clearPhotos } = usePhotoCapture(selectedLayout.photoCount);
-  const { canvasRef, downloadImage, isProcessing } = useCanvas();
+  const { downloadImage } = useCanvas();
   const { error, isLoading, handleError, executeWithErrorHandling } = useErrorHandler();
 
   const webcamRef = useRef<any>(null);
+  const canvasRef = useRef<HTMLCanvasElement | null>(null);
 
   // Capture is synchronous — don't show a loading banner for it.
   const handlePhotoCapture = (photoData: string) => {
@@ -47,7 +48,7 @@ function App() {
 
   const handleDownload = async () => {
     const ok = await executeWithErrorHandling(async () => {
-      downloadImage(`photo-booth-${Date.now()}.png`);
+      downloadImage(canvasRef.current, `photo-booth-${Date.now()}.png`);
       return true;
     });
     if (ok) setToast({ message: 'Saved to your downloads', type: 'success' });
@@ -123,10 +124,8 @@ function App() {
           </header>
 
           {/* Loading State */}
-          {(isLoading || isProcessing) && (
-            <LoadingState
-              message={isProcessing ? "Processing photos..." : "Loading..."}
-            />
+          {isLoading && (
+            <LoadingState message="Loading..." />
           )}
 
           {/* Main Content */}
@@ -180,7 +179,7 @@ function App() {
                     </button>
                     <DownloadButton
                       onClick={handleDownload}
-                      disabled={isLoading || isProcessing}
+                      disabled={isLoading}
                       isLoading={isLoading}
                     />
                   </div>

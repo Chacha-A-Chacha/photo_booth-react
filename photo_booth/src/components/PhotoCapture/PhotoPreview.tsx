@@ -19,11 +19,10 @@ const PhotoPreview: React.FC<PhotoPreviewProps> = ({
   const { composePhotos, isProcessing, error } = useCanvas();
 
   useEffect(() => {
-    if (photos.length > 0 && canvasRef.current) {
-      // Filters are baked into each photo at capture time, so we don't
-      // re-apply them at composition.
-      composePhotos(photos.map(p => p.data), layout);
-    }
+    if (photos.length === 0 || !canvasRef.current) return;
+    // Filters are baked into each photo at capture time, so we don't
+    // re-apply them at composition.
+    composePhotos(canvasRef.current, photos.map(p => p.data), layout);
   }, [photos, layout, composePhotos, canvasRef]);
 
   if (error) {
