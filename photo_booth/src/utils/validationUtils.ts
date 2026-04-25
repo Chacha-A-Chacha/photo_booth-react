@@ -86,7 +86,7 @@ export const validateMediaDevices = (): boolean => {
 };
 
 export const validateWebRTCSupport = (): boolean => {
-  return !!(window.RTCPeerConnection || window.webkitRTCPeerConnection);
+  return !!(window.RTCPeerConnection || (window as unknown as { webkitRTCPeerConnection?: unknown }).webkitRTCPeerConnection);
 };
 
 export const validateCanvasSupport = (): boolean => {
