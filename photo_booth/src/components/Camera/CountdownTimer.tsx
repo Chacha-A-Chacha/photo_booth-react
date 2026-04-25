@@ -6,9 +6,9 @@ interface CountdownTimerProps {
   onComplete: () => void;
 }
 
-const CountdownTimer: React.FC<CountdownTimerProps> = ({ 
-  duration = 3, 
-  onComplete 
+const CountdownTimer: React.FC<CountdownTimerProps> = ({
+  duration = 3,
+  onComplete
 }) => {
   const [count, setCount] = useState(duration);
 
@@ -21,23 +21,21 @@ const CountdownTimer: React.FC<CountdownTimerProps> = ({
     }
   }, [count, onComplete]);
 
-  const getCountdownStyle = () => {
-    const percentage = (count / duration) * 100;
-    const scale = 1 + (duration - count) * 0.2;
-    return {
-      transform: `scale(${scale})`,
-      opacity: percentage / 100,
-      color: count <= 1 ? '#ef4444' : '#ffffff'
-    };
-  };
+  const isFinal = count <= 1;
 
   return (
     <div className="flex items-center justify-center">
-      <div 
-        className="text-8xl md:text-9xl font-bold animate-pulse transition-all duration-300"
-        style={getCountdownStyle()}
+      <div
+        key={count}
+        className={`
+          font-display text-[10rem] sm:text-[14rem] leading-none
+          ${isFinal ? 'text-coral' : 'text-cream'}
+          drop-shadow-[6px_6px_0_rgba(26,26,46,0.9)]
+          animate-pop-in
+        `}
+        style={{ fontFeatureSettings: '"tnum"' }}
       >
-        {count}
+        {count > 0 ? count : '✨'}
       </div>
     </div>
   );
