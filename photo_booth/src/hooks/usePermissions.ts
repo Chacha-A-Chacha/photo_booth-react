@@ -1,7 +1,12 @@
 // src/hooks/usePermissions.ts
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import type { CameraPermissionState } from '../types/camera';
 import { handleCameraError } from '../utils/errorUtils';
+
+const isMediaDevicesSupported = () =>
+  typeof navigator !== 'undefined' &&
+  !!navigator.mediaDevices &&
+  typeof navigator.mediaDevices.getUserMedia === 'function';
 
 export const usePermissions = () => {
   const [cameraPermission, setCameraPermission] = useState<CameraPermissionState>({
@@ -9,67 +14,103 @@ export const usePermissions = () => {
     error: null
   });
 
-  const checkCameraPermission = useCallback(async () => {
-    setCameraPermission({ state: 'checking', error: null });
+  const statusRef = useRef<PermissionStatus | null>(null);
+
+  const requestCameraPermission = useCallback(async () => {
+    if (!isMediaDevicesSupported()) {
+      setCameraPermission({
+        state: 'unsupported',
+        error: 'Camera is not supported in this browser.'
+      });
+      return false;
+    }
+
+    setCameraPermission({ state: 'requesting', error: null });
 
     try {
-      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-        throw new Error('Camera not supported in this browser');
-      }
-
       const stream = await navigator.mediaDevices.getUserMedia({ video: true });
       stream.getTracks().forEach(track => track.stop());
-      
       setCameraPermission({ state: 'granted', error: null });
       return true;
     } catch (error) {
       const appError = handleCameraError(error as Error);
-      setCameraPermission({ 
-        state: 'denied', 
-        error: appError.message 
+      setCameraPermission({
+        state: 'denied',
+        error: appError.message
       });
       return false;
     }
   }, []);
 
-  const requestCameraPermission = useCallback(async () => {
-    setCameraPermission({ state: 'requesting', error: null });
-    return await checkCameraPermission();
-  }, [checkCameraPermission]);
-
-  const checkPermissionStatus = useCallback(async () => {
-    try {
-      const permission = await navigator.permissions.query({ name: 'camera' as PermissionName });
-      
-      switch (permission.state) {
-        case 'granted':
-          setCameraPermission({ state: 'granted', error: null });
-          return true;
-        case 'denied':
-          setCameraPermission({ state: 'denied', error: 'Camera permission denied' });
-          return false;
-        case 'prompt':
-          setCameraPermission({ state: 'checking', error: null });
-          return null;
-        default:
-          return null;
-      }
-    } catch (error) {
-      // Fallback to getUserMedia check
-      return await checkCameraPermission();
-    }
-  }, [checkCameraPermission]);
-
+  // Initial probe: check permission state without triggering a prompt.
   useEffect(() => {
-    checkPermissionStatus();
-  }, [checkPermissionStatus]);
+    let cancelled = false;
+
+    const probe = async () => {
+      if (!isMediaDevicesSupported()) {
+        if (!cancelled) {
+          setCameraPermission({
+            state: 'unsupported',
+            error: 'Camera is not supported in this browser.'
+          });
+        }
+        return;
+      }
+
+      // Permissions API available?
+      if (typeof navigator.permissions?.query === 'function') {
+        try {
+          const status = await navigator.permissions.query({
+            name: 'camera' as PermissionName
+          });
+          if (cancelled) return;
+
+          statusRef.current = status;
+
+          const apply = (s: PermissionState) => {
+            if (s === 'granted') {
+              setCameraPermission({ state: 'granted', error: null });
+            } else if (s === 'denied') {
+              setCameraPermission({
+                state: 'denied',
+                error: 'Camera access was denied.'
+              });
+            } else {
+              setCameraPermission({ state: 'prompt', error: null });
+            }
+          };
+
+          apply(status.state);
+          status.onchange = () => apply(status.state);
+          return;
+        } catch {
+          // Browser supports permissions.query but not 'camera' (older Firefox/Safari).
+          // Fall through to the safe default.
+        }
+      }
+
+      // Fallback: do NOT auto-trigger getUserMedia. Wait for user click.
+      if (!cancelled) {
+        setCameraPermission({ state: 'prompt', error: null });
+      }
+    };
+
+    probe();
+    return () => {
+      cancelled = true;
+      if (statusRef.current) {
+        statusRef.current.onchange = null;
+      }
+    };
+  }, []);
 
   return {
     cameraPermission,
-    checkCameraPermission,
     requestCameraPermission,
-    checkPermissionStatus,
-    hasCamera: cameraPermission.state === 'granted',
-    needsPermission: cameraPermission.state === 'denied' || cameraPermission.state === 'checking'
+    isGranted: cameraPermission.state === 'granted',
+    isDenied: cameraPermission.state === 'denied',
+    isPrompt: cameraPermission.state === 'prompt',
+    isRequesting: cameraPermission.state === 'requesting',
+    isUnsupported: cameraPermission.state === 'unsupported'
   };
 };

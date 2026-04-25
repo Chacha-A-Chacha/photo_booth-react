@@ -22,7 +22,15 @@ export interface CameraState {
   facingMode: 'user' | 'environment';
 }
 
+export type CameraPermissionStatus =
+  | 'checking'
+  | 'prompt'
+  | 'requesting'
+  | 'granted'
+  | 'denied'
+  | 'unsupported';
+
 export interface CameraPermissionState {
-  state: 'checking' | 'granted' | 'denied' | 'requesting';
+  state: CameraPermissionStatus;
   error: string | null;
 }
