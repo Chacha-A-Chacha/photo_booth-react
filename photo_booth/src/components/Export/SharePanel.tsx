@@ -1,7 +1,6 @@
 // src/components/Export/SharePanel.tsx
 import React from 'react';
-import { Share2, Copy, Download } from 'lucide-react';
-import { useCanvas } from '../../hooks/useCanvas';
+import { Share2, Copy } from 'lucide-react';
 import { shareCanvas, copyCanvasToClipboard } from '../../utils/downloadUtils';
 
 interface SharePanelProps {
@@ -10,8 +9,6 @@ interface SharePanelProps {
 }
 
 const SharePanel: React.FC<SharePanelProps> = ({ canvasRef, filename = 'photo-booth.png' }) => {
-  const { downloadImage } = useCanvas();
-
   const handleShare = async () => {
     if (!canvasRef.current) return;
     try {
@@ -30,42 +27,31 @@ const SharePanel: React.FC<SharePanelProps> = ({ canvasRef, filename = 'photo-bo
     }
   };
 
-  const handleDownload = () => {
-    downloadImage(filename);
-  };
+  const canShare = 'share' in navigator;
+  const canCopy = 'clipboard' in navigator;
+  if (!canShare && !canCopy) return null;
 
   return (
-    <div className="bg-white p-6 rounded-xl shadow-lg">
-      <h3 className="text-lg font-semibold text-gray-800 mb-4">Share & Export</h3>
-      <div className="space-y-3">
+    <div className="bg-paper border-4 border-ink rounded-3xl shadow-pop p-5 space-y-3">
+      <h3 className="font-display text-xl text-ink">Share It</h3>
+      {canShare && (
         <button
-          onClick={handleDownload}
-          className="w-full flex items-center justify-center space-x-2 bg-purple-600 hover:bg-purple-700 text-white px-4 py-3 rounded-lg transition-colors"
+          onClick={handleShare}
+          className="w-full flex items-center justify-center gap-2 bg-lilac hover:bg-mustard text-ink font-semibold px-4 py-3 rounded-xl border-2 border-ink shadow-pop-sm hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-none transition-all"
         >
-          <Download className="w-4 h-4" />
-          <span>Download</span>
+          <Share2 className="w-4 h-4" strokeWidth={2.5} />
+          <span>Share</span>
         </button>
-        
-        {'share' in navigator && (
-          <button
-            onClick={handleShare}
-            className="w-full flex items-center justify-center space-x-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-3 rounded-lg transition-colors"
-          >
-            <Share2 className="w-4 h-4" />
-            <span>Share</span>
-          </button>
-        )}
-        
-        {navigator.clipboard && (
-          <button
-            onClick={handleCopy}
-            className="w-full flex items-center justify-center space-x-2 bg-gray-600 hover:bg-gray-700 text-white px-4 py-3 rounded-lg transition-colors"
-          >
-            <Copy className="w-4 h-4" />
-            <span>Copy to Clipboard</span>
-          </button>
-        )}
-      </div>
+      )}
+      {canCopy && (
+        <button
+          onClick={handleCopy}
+          className="w-full flex items-center justify-center gap-2 bg-cream hover:bg-mustard text-ink font-semibold px-4 py-3 rounded-xl border-2 border-ink shadow-pop-sm hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-none transition-all"
+        >
+          <Copy className="w-4 h-4" strokeWidth={2.5} />
+          <span>Copy to Clipboard</span>
+        </button>
+      )}
     </div>
   );
 };

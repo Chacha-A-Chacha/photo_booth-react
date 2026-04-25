@@ -17,16 +17,16 @@ const DownloadButton: React.FC<DownloadButtonProps> = ({
     <button
       onClick={onClick}
       disabled={disabled || isLoading}
-      className="w-full flex items-center justify-center space-x-2 bg-purple-600 hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed text-white px-6 py-3 rounded-lg transition-colors font-medium"
+      className="w-full flex items-center justify-center gap-2 bg-coral hover:bg-coral-dark text-cream font-semibold px-6 py-3 rounded-xl border-2 border-ink shadow-pop-sm hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-none disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-x-0 disabled:hover:translate-y-0 disabled:hover:shadow-pop-sm transition-all"
     >
       {isLoading ? (
         <>
-          <Loader2 className="w-4 h-4 animate-spin" />
+          <Loader2 className="w-4 h-4 animate-spin" strokeWidth={2.5} />
           <span>Processing...</span>
         </>
       ) : (
         <>
-          <Download className="w-4 h-4" />
+          <Download className="w-4 h-4" strokeWidth={2.5} />
           <span>Download Photo</span>
         </>
       )}

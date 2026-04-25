@@ -18,7 +18,7 @@ const PhotoGrid: React.FC<PhotoGridProps> = ({
 }) => {
   if (photos.length === 0) {
     return (
-      <div className="text-center text-gray-500 py-8">
+      <div className="text-center text-charcoal/60 py-6 italic">
         No photos captured yet
       </div>
     );
@@ -26,33 +26,37 @@ const PhotoGrid: React.FC<PhotoGridProps> = ({
 
   return (
     <div className={`w-full ${className}`}>
-      <h3 className="text-lg font-semibold text-gray-800 mb-3">
-        Captured Photos ({photos.length})
-      </h3>
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-        {photos.map((photo, index) => (
-          <div key={photo.id} className="relative group">
-            <img
-              src={photo.data}
-              alt={`Photo ${index + 1}`}
-              className="w-full h-20 object-cover rounded-lg border-2 border-gray-200 group-hover:border-purple-400 transition-colors"
-            />
-            <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-20 rounded-lg transition-opacity flex items-center justify-center">
-              <span className="text-white text-xs font-medium opacity-0 group-hover:opacity-100 transition-opacity bg-black bg-opacity-50 px-2 py-1 rounded">
-                {index + 1}
-              </span>
+      <h4 className="font-display text-base text-ink mb-2">
+        Frames · {photos.length}
+      </h4>
+      <div className="grid grid-cols-3 sm:grid-cols-4 gap-2.5">
+        {photos.map((photo, index) => {
+          const tilt = index % 2 === 0 ? 'tilt-l' : 'tilt-r';
+          return (
+            <div key={photo.id} className={`relative group ${tilt}`}>
+              <div className="bg-cream border-2 border-ink rounded-md p-1.5 shadow-pop-sm">
+                <img
+                  src={photo.data}
+                  alt={`Photo ${index + 1}`}
+                  className="w-full h-16 object-cover rounded-sm"
+                />
+                <div className="text-center font-display text-[10px] text-ink/70 leading-tight pt-0.5">
+                  #{index + 1}
+                </div>
+              </div>
+              {showDelete && onDeletePhoto && (
+                <button
+                  onClick={() => onDeletePhoto(index)}
+                  className="absolute -top-1 -right-1 p-1 bg-coral text-cream border-2 border-ink rounded-full opacity-0 group-hover:opacity-100 transition-opacity hover:bg-coral-dark"
+                  title="Delete Photo"
+                  aria-label="Delete photo"
+                >
+                  <Trash2 className="w-3 h-3" strokeWidth={2.5} />
+                </button>
+              )}
             </div>
-            {showDelete && onDeletePhoto && (
-              <button
-                onClick={() => onDeletePhoto(index)}
-                className="absolute top-1 right-1 p-1 bg-red-500 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-600"
-                title="Delete Photo"
-              >
-                <Trash2 className="w-3 h-3" />
-              </button>
-            )}
-          </div>
-        ))}
+          );
+        })}
       </div>
     </div>
   );
