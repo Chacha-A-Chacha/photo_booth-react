@@ -1,5 +1,5 @@
 // src/App.tsx
-import React, { useState, useRef } from 'react';
+import { useState, useRef } from 'react';
 import { Aperture, RotateCcw, Sparkles } from 'lucide-react';
 import ErrorBoundary from './components/UI/ErrorBoundary';
 import CameraView from './components/Camera/CameraView';
@@ -20,22 +20,16 @@ function App() {
   const [selectedLayout, setSelectedLayout] = useLocalStorage(STORAGE_KEYS.SELECTED_LAYOUT, DEFAULT_LAYOUT);
   const [selectedFilter, setSelectedFilter] = useLocalStorage(STORAGE_KEYS.SELECTED_FILTER, DEFAULT_FILTER);
 
-  const { photos, addPhoto, clearPhotos, canAddMore } = usePhotoCapture(selectedLayout.photoCount);
-  const { canvasRef, initializeCanvas, downloadImage, isProcessing } = useCanvas();
+  const { photos, addPhoto, clearPhotos } = usePhotoCapture(selectedLayout.photoCount);
+  const { canvasRef, downloadImage, isProcessing } = useCanvas();
   const { error, isLoading, executeWithErrorHandling } = useErrorHandler();
 
   const webcamRef = useRef<any>(null);
 
-  React.useEffect(() => {
-    if (currentStep === 'preview') {
-      initializeCanvas(selectedLayout.width, selectedLayout.height);
-    }
-  }, [currentStep, selectedLayout, initializeCanvas]);
-
   const handlePhotoCapture = async (photoData: string) => {
     await executeWithErrorHandling(async () => {
       addPhoto(photoData, selectedFilter);
-      if (!canAddMore) {
+      if (photos.length + 1 >= selectedLayout.photoCount) {
         setCurrentStep('preview');
       }
     });

@@ -2,7 +2,7 @@
 import { useRef, useCallback, useState } from 'react';
 import type { LayoutType } from '../types/layout';
 import type { FilterType } from '../types/filter';
-import { validateCanvas, createCanvas } from '../utils/canvasUtils';
+import { validateCanvas } from '../utils/canvasUtils';
 import { composePhotoStrip } from '../utils/layoutUtils';
 import { downloadCanvasAsImage } from '../utils/downloadUtils';
 import { handleCanvasError } from '../utils/errorUtils';
@@ -11,19 +11,6 @@ export const useCanvas = () => {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
   const [error, setError] = useState<string | null>(null);
-
-  const initializeCanvas = useCallback((width: number, height: number) => {
-    try {
-      const canvas = createCanvas(width, height);
-      canvasRef.current = canvas;
-      setError(null);
-      return canvas;
-    } catch (error) {
-      const appError = handleCanvasError(error as Error, 'initialize');
-      setError(appError.message);
-      throw appError;
-    }
-  }, []);
 
   const composePhotos = useCallback(async (
     photos: string[],
@@ -122,7 +109,6 @@ export const useCanvas = () => {
     canvasRef,
     isProcessing,
     error,
-    initializeCanvas,
     composePhotos,
     downloadImage,
     getDataURL,
