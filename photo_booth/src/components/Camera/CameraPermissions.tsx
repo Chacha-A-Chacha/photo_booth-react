@@ -1,94 +1,165 @@
 // src/components/Camera/CameraPermissions.tsx
-import React from 'react';
-import { Camera, AlertCircle, Settings, Loader2 } from 'lucide-react';
+import React, { useEffect } from 'react';
+import { Aperture, Camera, Lock, Loader2, ShieldCheck, Settings } from 'lucide-react';
 import { usePermissions } from '../../hooks/usePermissions';
 
 interface CameraPermissionsProps {
   onGranted: () => void;
-  onDenied: (error: Error) => void;
+  onDenied?: (error: Error) => void;
 }
 
-const CameraPermissions: React.FC<CameraPermissionsProps> = ({ 
-  onGranted, 
-  onDenied 
-}) => {
-  const { 
-    cameraPermission, 
-    requestCameraPermission 
-  } = usePermissions();
+const Card: React.FC<{ children: React.ReactNode }> = ({ children }) => (
+  <div className="bg-paper border-4 border-ink rounded-3xl shadow-pop p-6 sm:p-8">
+    {children}
+  </div>
+);
 
-  React.useEffect(() => {
+const BrowserHints: React.FC = () => {
+  const ua = typeof navigator !== 'undefined' ? navigator.userAgent : '';
+  const isiOS = /iPhone|iPad|iPod/.test(ua);
+  const isAndroid = /Android/.test(ua);
+  const isFirefox = /Firefox/.test(ua);
+  const isSafari = /^((?!chrome|android).)*safari/i.test(ua);
+
+  let hint =
+    'Click the camera icon in your browser\'s address bar, then choose "Allow".';
+
+  if (isiOS) {
+    hint = 'Open Settings → Safari → Camera and choose "Allow".';
+  } else if (isAndroid) {
+    hint = 'Tap the lock icon in the address bar → Permissions → Camera → Allow.';
+  } else if (isFirefox) {
+    hint = 'Click the camera icon to the left of the address bar and clear the blocked permission.';
+  } else if (isSafari) {
+    hint = 'Open Safari → Settings for This Website → set Camera to "Allow".';
+  }
+
+  return (
+    <div className="mt-4 bg-cream border-2 border-ink rounded-xl p-3 text-left">
+      <div className="flex items-start gap-2 text-sm text-charcoal">
+        <Settings className="w-4 h-4 mt-0.5 text-coral shrink-0" strokeWidth={2.5} />
+        <span>{hint}</span>
+      </div>
+    </div>
+  );
+};
+
+const CameraPermissions: React.FC<CameraPermissionsProps> = ({ onGranted, onDenied }) => {
+  const { cameraPermission, requestCameraPermission } = usePermissions();
+
+  useEffect(() => {
     if (cameraPermission.state === 'granted') {
       onGranted();
-    } else if (cameraPermission.state === 'denied' && cameraPermission.error) {
+    } else if (cameraPermission.state === 'denied' && cameraPermission.error && onDenied) {
       onDenied(new Error(cameraPermission.error));
     }
-  }, [cameraPermission, onGranted, onDenied]);
+  }, [cameraPermission.state, cameraPermission.error, onGranted, onDenied]);
 
-  const handleRequestPermission = async () => {
-    await requestCameraPermission();
-  };
-
+  // Brief boot probe — usually <100ms.
   if (cameraPermission.state === 'checking') {
     return (
-      <div className="bg-white rounded-2xl shadow-lg p-8 text-center">
-        <Loader2 className="w-16 h-16 text-purple-600 mx-auto mb-4 animate-spin" />
-        <h2 className="text-xl font-bold text-gray-800 mb-2">
-          Checking Camera Access...
-        </h2>
-        <p className="text-gray-600">
-          Please wait while we check your camera permissions.
-        </p>
-      </div>
+      <Card>
+        <div className="text-center">
+          <div className="inline-flex w-14 h-14 bg-cream border-4 border-ink rounded-2xl items-center justify-center mb-4">
+            <Loader2 className="w-7 h-7 text-ink animate-spin" strokeWidth={2.5} />
+          </div>
+          <h2 className="font-display text-2xl text-ink mb-1">Getting ready…</h2>
+          <p className="text-charcoal/70">Checking your camera setup.</p>
+        </div>
+      </Card>
+    );
+  }
+
+  if (cameraPermission.state === 'unsupported') {
+    return (
+      <Card>
+        <div className="text-center">
+          <div className="inline-flex w-14 h-14 bg-coral border-4 border-ink rounded-2xl items-center justify-center mb-4 rotate-[-4deg]">
+            <Lock className="w-7 h-7 text-cream" strokeWidth={2.5} />
+          </div>
+          <h2 className="font-display text-2xl text-ink mb-2">Camera Not Supported</h2>
+          <p className="text-charcoal/80">
+            {cameraPermission.error ||
+              'This browser doesn\'t support camera access. Try Chrome, Firefox, or Safari.'}
+          </p>
+        </div>
+      </Card>
     );
   }
 
   if (cameraPermission.state === 'requesting') {
     return (
-      <div className="bg-white rounded-2xl shadow-lg p-8 text-center">
-        <Camera className="w-16 h-16 text-purple-600 mx-auto mb-4 animate-pulse" />
-        <h2 className="text-xl font-bold text-gray-800 mb-2">
-          Requesting Camera Access...
-        </h2>
-        <p className="text-gray-600">
-          Please allow camera access when prompted by your browser.
-        </p>
-      </div>
+      <Card>
+        <div className="text-center">
+          <div className="inline-flex w-14 h-14 bg-mustard border-4 border-ink rounded-2xl items-center justify-center mb-4 rotate-[-4deg]">
+            <Camera className="w-7 h-7 text-ink animate-pulse" strokeWidth={2.5} />
+          </div>
+          <h2 className="font-display text-2xl text-ink mb-2">Waiting for permission…</h2>
+          <p className="text-charcoal/80">
+            Look for the prompt at the top of your browser and choose <strong>Allow</strong>.
+          </p>
+        </div>
+      </Card>
     );
   }
 
   if (cameraPermission.state === 'denied') {
     return (
-      <div className="bg-white rounded-2xl shadow-lg p-8 text-center">
-        <AlertCircle className="w-16 h-16 text-red-500 mx-auto mb-4" />
-        <h2 className="text-xl font-bold text-gray-800 mb-2">
-          Camera Access Required
-        </h2>
-        <p className="text-gray-600 mb-6">
-          {cameraPermission.error || 'Camera access is required to use the photo booth.'}
-        </p>
-        <div className="space-y-4">
-          <button
-            onClick={handleRequestPermission}
-            className="w-full bg-purple-600 text-white px-6 py-3 rounded-lg hover:bg-purple-700 transition-colors"
-          >
-            Allow Camera Access
-          </button>
-          <div className="text-sm text-gray-500 space-y-2">
-            <div className="flex items-center justify-center">
-              <Settings className="w-4 h-4 mr-1" />
-              <span>Enable camera in browser settings</span>
-            </div>
-            <div className="text-xs">
-              Look for the camera icon in your browser's address bar
-            </div>
+      <Card>
+        <div className="text-center">
+          <div className="inline-flex w-14 h-14 bg-coral border-4 border-ink rounded-2xl items-center justify-center mb-4 rotate-[-4deg]">
+            <Lock className="w-7 h-7 text-cream" strokeWidth={2.5} />
           </div>
+          <h2 className="font-display text-2xl text-ink mb-2">Camera Blocked</h2>
+          <p className="text-charcoal/80 mb-4">
+            {cameraPermission.error ||
+              'We can\'t reach your camera. Once a browser blocks it, you\'ll need to re-allow it manually.'}
+          </p>
+
+          <button
+            onClick={requestCameraPermission}
+            className="w-full sm:w-auto inline-flex items-center justify-center gap-2 bg-ink text-cream font-semibold px-6 py-3 rounded-xl border-2 border-ink shadow-pop-sm hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-none transition-all"
+          >
+            <Camera className="w-4 h-4" strokeWidth={2.5} />
+            <span>Try Again</span>
+          </button>
+
+          <BrowserHints />
         </div>
-      </div>
+      </Card>
     );
   }
 
-  return null;
+  // 'prompt' — first visit, or permission was reset. Show welcome gate.
+  return (
+    <Card>
+      <div className="text-center">
+        <div className="inline-flex w-16 h-16 bg-coral border-4 border-ink rounded-2xl items-center justify-center mb-5 rotate-[-4deg] shadow-pop-sm">
+          <Aperture className="w-9 h-9 text-cream" strokeWidth={2.5} />
+        </div>
+
+        <h2 className="font-display text-3xl sm:text-4xl text-ink mb-2 leading-none">
+          Smile, you’re on
+        </h2>
+        <p className="text-charcoal/80 max-w-md mx-auto mb-6">
+          Photo Booth uses your camera to capture photos. Tap below and your browser will ask for permission.
+        </p>
+
+        <button
+          onClick={requestCameraPermission}
+          className="inline-flex items-center justify-center gap-2 bg-coral text-cream font-semibold px-8 py-3.5 rounded-xl border-2 border-ink shadow-pop hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-pop-sm active:translate-x-[4px] active:translate-y-[4px] active:shadow-none transition-all"
+        >
+          <Camera className="w-5 h-5" strokeWidth={2.5} />
+          <span>Start Camera</span>
+        </button>
+
+        <div className="mt-6 inline-flex items-center gap-2 text-xs text-charcoal/70 bg-cream border-2 border-ink rounded-full px-3 py-1.5">
+          <ShieldCheck className="w-4 h-4 text-ink" strokeWidth={2.5} />
+          <span>Photos stay on your device. Nothing is uploaded.</span>
+        </div>
+      </div>
+    </Card>
+  );
 };
 
 export default CameraPermissions;
