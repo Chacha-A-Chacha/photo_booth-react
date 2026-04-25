@@ -9,6 +9,7 @@ import LayoutSelector from './components/Layout/LayoutSelector';
 import DownloadButton from './components/Export/DownloadButton';
 import SharePanel from './components/Export/SharePanel';
 import LoadingState from './components/UI/LoadingState';
+import { Toast } from './components/UI/Toast';
 import { usePhotoCapture } from './hooks/usePhotoCapture';
 import { useLocalStorage } from './hooks/useLocalStorage';
 import { useCanvas } from './hooks/useCanvas';
@@ -19,20 +20,24 @@ function App() {
   const [currentStep, setCurrentStep] = useState<'camera' | 'preview'>('camera');
   const [selectedLayout, setSelectedLayout] = useLocalStorage(STORAGE_KEYS.SELECTED_LAYOUT, DEFAULT_LAYOUT);
   const [selectedFilter, setSelectedFilter] = useLocalStorage(STORAGE_KEYS.SELECTED_FILTER, DEFAULT_FILTER);
+  const [toast, setToast] = useState<{ message: string; type?: 'success' | 'error' | 'info' } | null>(null);
 
-  const { photos, addPhoto, clearPhotos } = usePhotoCapture(selectedLayout.photoCount);
+  const { photos, addPhoto, removePhoto, clearPhotos } = usePhotoCapture(selectedLayout.photoCount);
   const { canvasRef, downloadImage, isProcessing } = useCanvas();
-  const { error, isLoading, executeWithErrorHandling } = useErrorHandler();
+  const { error, isLoading, handleError, executeWithErrorHandling } = useErrorHandler();
 
   const webcamRef = useRef<any>(null);
 
-  const handlePhotoCapture = async (photoData: string) => {
-    await executeWithErrorHandling(async () => {
+  // Capture is synchronous — don't show a loading banner for it.
+  const handlePhotoCapture = (photoData: string) => {
+    try {
       addPhoto(photoData, selectedFilter);
       if (photos.length + 1 >= selectedLayout.photoCount) {
         setCurrentStep('preview');
       }
-    });
+    } catch (err) {
+      handleError(err as Error);
+    }
   };
 
   const handleRetake = () => {
@@ -41,9 +46,11 @@ function App() {
   };
 
   const handleDownload = async () => {
-    await executeWithErrorHandling(async () => {
+    const ok = await executeWithErrorHandling(async () => {
       downloadImage(`photo-booth-${Date.now()}.png`);
+      return true;
     });
+    if (ok) setToast({ message: 'Saved to your downloads', type: 'success' });
   };
 
   const handleLayoutChange = (layout: typeof selectedLayout) => {
@@ -130,8 +137,9 @@ function App() {
                 <CameraView
                   ref={webcamRef}
                   onCapture={handlePhotoCapture}
+                  onDeletePhoto={removePhoto}
+                  photos={photos}
                   selectedFilter={selectedFilter}
-                  capturedCount={photos.length}
                   totalCount={selectedLayout.photoCount}
                 />
               )}
@@ -186,6 +194,14 @@ function App() {
             </aside>
           </main>
         </div>
+
+        {toast && (
+          <Toast
+            message={toast.message}
+            type={toast.type}
+            onClose={() => setToast(null)}
+          />
+        )}
       </div>
     </ErrorBoundary>
   );
